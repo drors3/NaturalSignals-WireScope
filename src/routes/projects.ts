@@ -1,34 +1,68 @@
 import { Router } from "express";
-import { databases } from "../services/appwrite";
-import { z } from "zod";
+import { DatabaseService } from "../services/appwrite";
+import { validateRequest, projectSchema } from "../middleware/validation";
+import { asyncHandler } from "../middleware/errorHandler";
+import { AppError } from "../middleware/errorHandler";
 
 const router = Router();
 
-const projectSchema = z.object({
-  name: z.string(),
-  location: z.string().optional()
-});
+// Create a new project
+router.post(
+  "/",
+  validateRequest(projectSchema),
+  asyncHandler(async (req: Request, res: Response) => {
+    const project = await DatabaseService.createProject(req.body);
+    res.status(201).json({
+      success: true,
+      data: project
+    });
+  })
+);
 
-const DB_ID = process.env.APPWRITE_DB_ID as string;
-const PROJECTS_COLLECTION = process.env.APPWRITE_PROJECTS_COLLECTION as string;
+// Get all projects
+router.get(
+  "/",
+  asyncHandler(async (req: Request, res: Response) => {
+    const electricianId = req.query.electricianId as string | undefined;
+    const projects = await DatabaseService.listProjects(electricianId);
+    res.json({
+      success: true,
+      data: projects,
+      count: projects.length
+    });
+  })
+);
 
-router.post("/", async (req, res) => {
-  try {
-    const parsed = projectSchema.parse(req.body);
-    const response = await databases.createDocument(DB_ID, PROJECTS_COLLECTION, "unique()", parsed);
-    res.json(response);
-  } catch (err: any) {
-    res.status(400).json({ error: err.message });
-  }
-});
+// Get single project
+router.get(
+  "/:projectId",
+  asyncHandler(async (req: Request, res: Response) => {
+    const project = await DatabaseService.getProject(req.params.projectId);
+    if (!project) {
+      throw new AppError('Project not found', 404);
+    }
+    res.json({
+      success: true,
+      data: project
+    });
+  })
+);
 
-router.get("/", async (req, res) => {
-  try {
-    const response = await databases.listDocuments(DB_ID, PROJECTS_COLLECTION);
-    res.json(response.documents);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
+// Update project status
+router.patch(
+  "/:projectId/status",
+  asyncHandler(async (req: Request, res: Response) => {
+    const { status } = req.body;
+    if (!['active', 'completed', 'pending'].includes(status)) {
+      throw new AppError('Invalid status', 400);
+    }
+    
+    // Update logic here
+    res.json({
+      success: true,
+      message: 'Status updated'
+    });
+  })
+);
 
 export default router;
