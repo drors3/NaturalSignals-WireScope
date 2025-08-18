@@ -1,43 +1,93 @@
 import { Router } from "express";
-import { databases } from "../services/appwrite";
-import { z } from "zod";
+import { DatabaseService } from "../services/appwrite";
+import { validateRequest, measurementSchema } from "../middleware/validation";
+import { asyncHandler } from "../middleware/errorHandler";
+import { AppError } from "../middleware/errorHandler";
 
 const router = Router();
 
-const measurementSchema = z.object({
-  projectId: z.string(),
-  voltage: z.number(),
-  current: z.number(),
-  temperature: z.number().optional()
-});
+// Create a new measurement
+router.post(
+  "/",
+  validateRequest(measurementSchema),
+  asyncHandler(async (req: Request, res: Response) => {
+    // Verify project exists
+    const project = await DatabaseService.getProject(req.body.projectId);
+    if (!project) {
+      throw new AppError('Project not found', 404);
+    }
 
-const DB_ID = process.env.APPWRITE_DB_ID as string;
-const MEASUREMENTS_COLLECTION = process.env.APPWRITE_MEASUREMENTS_COLLECTION as string;
+    const measurement = await DatabaseService.createMeasurement(req.body);
+    res.status(201).json({
+      success: true,
+      data: measurement
+    });
+  })
+);
 
-router.post("/", async (req, res) => {
-  try {
-    const parsed = measurementSchema.parse(req.body);
-    const response = await databases.createDocument(DB_ID, MEASUREMENTS_COLLECTION, "unique()", parsed);
-    res.json(response);
-  } catch (err: any) {
-    res.status(400).json({ error: err.message });
-  }
-});
+// Get measurements for a project
+router.get(
+  "/project/:projectId",
+  asyncHandler(async (req: Request, res: Response) => {
+    const limit = parseInt(req.query.limit as string) || 100;
+    const measurements = await DatabaseService.getMeasurements(
+      req.params.projectId,
+      limit
+    );
+    
+    res.json({
+      success: true,
+      data: measurements,
+      count: measurements.length
+    });
+  })
+);
 
-router.get("/:projectId", async (req, res) => {
-  try {
-    const { projectId } = req.params;
-    const response = await databases.listDocuments(DB_ID, MEASUREMENTS_COLLECTION, [
-      {
-        key: "projectId",
-        value: projectId,
-        operator: "equal"
-      }
-    ] as any);
-    res.json(response.documents);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
+// Get latest measurement for a project
+router.get(
+  "/project/:projectId/latest",
+  asyncHandler(async (req: Request, res: Response) => {
+    const measurements = await DatabaseService.getMeasurements(
+      req.params.projectId,
+      1
+    );
+    
+    if (measurements.length === 0) {
+      throw new AppError('No measurements found', 404);
+    }
+    
+    res.json({
+      success: true,
+      data: measurements[0]
+    });
+  })
+);
+
+// Bulk upload measurements
+router.post(
+  "/bulk",
+  asyncHandler(async (req: Request, res: Response) => {
+    const { projectId, measurements } = req.body;
+    
+    if (!Array.isArray(measurements)) {
+      throw new AppError('Measurements must be an array', 400);
+    }
+    
+    const results = [];
+    for (const measurement of measurements) {
+      const result = await DatabaseService.createMeasurement({
+        projectId,
+        ...measurement
+      });
+      results.push(result);
+    }
+    
+    res.status(201).json({
+      success: true,
+      data: results,
+      count: results.length
+    });
+  })
+);
 
 export default router;
