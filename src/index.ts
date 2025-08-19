@@ -23,16 +23,17 @@ const logger = winston.createLogger({
     winston.format.timestamp(),
     winston.format.json()
   ),
+  defaultMeta: { service: 'NaturalSignals-WireScope' },
   transports: [
     new winston.transports.Console({
       format: winston.format.simple()
     }),
     new winston.transports.File({ 
-      filename: 'error.log', 
+      filename: 'wirescope-error.log', 
       level: 'error' 
     }),
     new winston.transports.File({ 
-      filename: 'combined.log' 
+      filename: 'wirescope-combined.log' 
     })
   ]
 });
@@ -74,7 +75,7 @@ app.use((req, res, next) => {
 app.get("/", (req, res) => {
   res.json({
     status: 'operational',
-    service: 'Electrician AI Backend',
+    service: 'NaturalSignals-WireScope Backend',
     version: '2.0.0',
     timestamp: new Date().toISOString()
   });
@@ -145,7 +146,7 @@ app.use(errorHandler);
 // Start server
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
-  logger.info(`⚡ Electrician AI Backend running on port ${PORT}`);
+  logger.info(`⚡NaturalSignals-WireScope Backend running on port ${PORT}`);
   logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
   logger.info(`Appwrite endpoint: ${process.env.APPWRITE_ENDPOINT}`);
 });
