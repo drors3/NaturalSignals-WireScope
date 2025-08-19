@@ -67,3 +67,4 @@ export interface Recommendation {
   estimatedTime?: string;
   toolsRequired?: string[];
   safetyPrecautions?: string[];
+  }
