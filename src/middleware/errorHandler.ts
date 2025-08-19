@@ -15,7 +15,8 @@ export class AppError extends Error {
     super(message);
     this.statusCode = statusCode;
     this.isOperational = true;
-    Error.captureStackTrace(this, this.constructor);
+    // Remove this line if it causes issues:
+    // Error.captureStackTrace(this, this.constructor);
   }
 }
 
@@ -23,7 +24,7 @@ export const errorHandler = (
   err: Error | AppError,
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ) => {
   let statusCode = 500;
   let message = 'Internal Server Error';
