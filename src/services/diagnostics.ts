@@ -1,4 +1,4 @@
-import { Measurement, Project, Diagnosis, Issue, Recommendation } from "../types";
+import { Measurement, Project, Diagnosis, Issue, Recommendation, PhaseMeasurement } from "../types";
 import { ElectricalCalculations } from "../utils/calculations";
 
 export class DiagnosticsEngine {
