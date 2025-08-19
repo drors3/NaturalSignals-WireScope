@@ -1,7 +1,10 @@
 const packageJson = {
-  "name": "electrician-ai-backend",
+  "name": "naturalsignals-wirescope-backend",
   "version": "2.0.0",
+  "description": "NaturalSignals-WireScope - AI-powered electrical troubleshooting system",
   "main": "dist/index.js",
+  "author": "NaturalSignals",
+  "license": "MIT",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc",
