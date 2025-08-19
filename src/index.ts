@@ -1,4 +1,4 @@
-import express, { Application } from "express";
+import express, { Application, Request, Response, NextFunction } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
@@ -23,17 +23,16 @@ const logger = winston.createLogger({
     winston.format.timestamp(),
     winston.format.json()
   ),
-  defaultMeta: { service: 'NaturalSignals-WireScope' },
   transports: [
     new winston.transports.Console({
       format: winston.format.simple()
     }),
     new winston.transports.File({ 
-      filename: 'wirescope-error.log', 
+      filename: 'error.log', 
       level: 'error' 
     }),
     new winston.transports.File({ 
-      filename: 'wirescope-combined.log' 
+      filename: 'combined.log' 
     })
   ]
 });
@@ -61,7 +60,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // Request logging
-app.use((req, res, next) => {
+app.use((req: Request, res: Response, next: NextFunction) => {
   logger.info({
     method: req.method,
     url: req.url,
@@ -72,7 +71,7 @@ app.use((req, res, next) => {
 });
 
 // Health check
-app.get("/", (req, res) => {
+app.get("/", (_req: Request, res: Response) => {
   res.json({
     status: 'operational',
     service: 'NaturalSignals-WireScope Backend',
@@ -81,7 +80,7 @@ app.get("/", (req, res) => {
   });
 });
 
-app.get("/health", (req, res) => {
+app.get("/health", (_req: Request, res: Response) => {
   res.status(200).json({
     status: 'healthy',
     uptime: process.uptime(),
@@ -95,7 +94,7 @@ app.use("/api/measurements", measurementsRouter);
 app.use("/api/diagnose", diagnoseRouter);
 
 // API Documentation endpoint
-app.get("/api/docs", (req, res) => {
+app.get("/api/docs", (_req: Request, res: Response) => {
   res.json({
     endpoints: [
       {
@@ -133,7 +132,7 @@ app.get("/api/docs", (req, res) => {
 });
 
 // 404 handler
-app.use((req, res) => {
+app.use((_req: Request, res: Response) => {
   res.status(404).json({
     success: false,
     error: 'Endpoint not found'
@@ -146,13 +145,13 @@ app.use(errorHandler);
 // Start server
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
-  logger.info(`⚡NaturalSignals-WireScope Backend running on port ${PORT}`);
+  logger.info(`⚡ NaturalSignals-WireScope Backend running on port ${PORT}`);
   logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
   logger.info(`Appwrite endpoint: ${process.env.APPWRITE_ENDPOINT}`);
 });
 
 // Handle unhandled promise rejections
-process.on('unhandledRejection', (reason, promise) => {
+process.on('unhandledRejection', (reason: any, promise: Promise<any>) => {
   logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
   // Close server & exit process
   process.exit(1);
