@@ -3,6 +3,7 @@ import { DatabaseService } from "../services/appwrite";
 import { DiagnosticsEngine } from "../services/diagnostics";
 import { asyncHandler } from "../middleware/errorHandler";
 import { AppError } from "../middleware/errorHandler";
+import { Project } from "../types";
 
 const router = Router();
 
@@ -14,10 +15,13 @@ router.get(
     const { save } = req.query;
 
     // Get project details
-    const project = await DatabaseService.getProject(projectId);
-    if (!project) {
+    const projectDoc = await DatabaseService.getProject(projectId);
+    if (!projectDoc) {
       throw new AppError('Project not found', 404);
     }
+
+    // Cast the document to Project type
+    const project = projectDoc as unknown as Project;
 
     // Get recent measurements
     const measurements = await DatabaseService.getMeasurements(projectId, 20);
@@ -58,7 +62,7 @@ router.get(
     res.json({
       success: true,
       data: [],
-      message: 'Feature coming soon'
+      message: `History for project ${projectId} coming soon`
     });
   })
 );
@@ -70,10 +74,9 @@ router.post(
     const { projectId } = req.params;
     const { rules, thresholds } = req.body;
     
-    // Custom diagnosis logic here
     res.json({
       success: true,
-      message: 'Manual diagnosis completed'
+      message: `Manual diagnosis for project ${projectId} with ${rules?.length || 0} rules`
     });
   })
 );
