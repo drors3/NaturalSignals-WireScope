@@ -3,14 +3,14 @@ import { DatabaseService } from "../services/appwrite";
 import { DiagnosticsEngine } from "../services/diagnostics";
 import { asyncHandler } from "../middleware/errorHandler";
 import { AppError } from "../middleware/errorHandler";
-import { Project } from "../types";
+import { Project, Measurement } from "../types";
 
 const router = Router();
 
 // Run diagnostics for a project
 router.get(
   "/:projectId",
-  asyncHandler(async (req: Request, res: Response) => {
+  asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const { projectId } = req.params;
     const { save } = req.query;
 
@@ -24,10 +24,10 @@ router.get(
     const project = projectDoc as unknown as Project;
 
     // Get recent measurements
-    const measurements = await DatabaseService.getMeasurements(projectId, 20);
+    const measurementDocs = await DatabaseService.getMeasurements(projectId, 20);
     
-    if (measurements.length === 0) {
-      return res.json({
+    if (measurementDocs.length === 0) {
+      res.json({
         success: true,
         data: {
           projectId,
@@ -35,7 +35,11 @@ router.get(
           recommendations: ['Take initial measurements']
         }
       });
+      return;
     }
+
+    // Cast measurements to proper type
+    const measurements = measurementDocs as unknown as Measurement[];
 
     // Run diagnostic engine
     const diagnosis = await DiagnosticsEngine.runDiagnostics(project, measurements);
@@ -55,7 +59,7 @@ router.get(
 // Get diagnosis history
 router.get(
   "/:projectId/history",
-  asyncHandler(async (req: Request, res: Response) => {
+  asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const { projectId } = req.params;
     
     // This would fetch from diagnoses collection
@@ -70,9 +74,9 @@ router.get(
 // Manual diagnosis with custom rules
 router.post(
   "/:projectId/manual",
-  asyncHandler(async (req: Request, res: Response) => {
+  asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const { projectId } = req.params;
-    const { rules, thresholds } = req.body;
+    const { rules } = req.body;
     
     res.json({
       success: true,
