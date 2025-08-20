@@ -2,7 +2,6 @@ import { Measurement, Project, Diagnosis, Issue, Recommendation, PhaseMeasuremen
 import { ElectricalCalculations } from "../utils/calculations";
 
 export class DiagnosticsEngine {
-  private static readonly VOLTAGE_TOLERANCE = 0.1; // ±10%
   private static readonly PHASE_IMBALANCE_LIMIT = 2; // 2%
   private static readonly NEUTRAL_CURRENT_LIMIT = 10; // 10A for typical systems
   private static readonly TEMP_WARNING = 60; // 60°C
