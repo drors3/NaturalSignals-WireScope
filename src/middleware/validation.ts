@@ -2,19 +2,20 @@ import { z } from 'zod';
 import { Request, Response, NextFunction } from 'express';
 
 export const validateRequest = (schema: z.ZodSchema) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
     try {
       schema.parse(req.body);
       next();
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           errors: error.errors.map(err => ({
             field: err.path.join('.'),
             message: err.message
           }))
         });
+        return;
       }
       next(error);
     }
