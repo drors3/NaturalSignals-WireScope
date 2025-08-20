@@ -99,8 +99,7 @@ export class DiagnosticsEngine {
     recommendations: Recommendation[]
   ) {
     const nominalVoltage = project.voltageRating;
-    const tolerance = nominalVoltage * this.VOLTAGE_TOLERANCE;
-
+  
     // Check each phase
     if (measurement.phaseA) {
       const voltageDrop = ElectricalCalculations.calculateVoltageDrop(
