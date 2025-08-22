@@ -130,7 +130,47 @@ app.get("/api/docs", (_req: Request, res: Response) => {
     ]
   });
 });
+// API Routes
+app.use("/api/projects", projectsRouter);
+app.use("/api/measurements", measurementsRouter);
+app.use("/api/diagnose", diagnoseRouter);
 
+// ADD SIMULATOR ROUTES HERE 👇
+// Import the simulator at the top of the file
+import { InternalSensorSimulator } from "./services/internal-simulator";
+
+// Simulator control endpoints
+app.post("/api/simulator/start/:projectId", (req: Request, res: Response) => {
+  const { projectId } = req.params;
+  const config = req.body; // Optional configuration
+  
+  InternalSensorSimulator.start(projectId, config);
+  res.json({ success: true, message: "Simulator started" });
+});
+
+app.post("/api/simulator/stop", (req: Request, res: Response) => {
+  InternalSensorSimulator.stop();
+  res.json({ success: true, message: "Simulator stopped" });
+});
+
+// API Documentation endpoint
+app.get("/api/docs", (_req: Request, res: Response) => {
+  res.json({
+    endpoints: [
+      // ... existing endpoints ...
+      {
+        method: 'POST',
+        path: '/api/simulator/start/:projectId',
+        description: 'Start sensor data simulation'
+      },
+      {
+        method: 'POST',
+        path: '/api/simulator/stop',
+        description: 'Stop sensor data simulation'
+      }
+    ]
+  });
+});
 // 404 handler
 app.use((_req: Request, res: Response) => {
   res.status(404).json({
