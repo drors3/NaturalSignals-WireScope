@@ -175,7 +175,7 @@ router.post(
 // Stop simulator
 router.post(
   "/stop",
- asyncHandler(async (_req: Request, res: Response) =>
+ asyncHandler(async (_req: Request, res: Response) => {
     if (simulatorState.interval) {
       clearInterval(simulatorState.interval);
       simulatorState.interval = null;
