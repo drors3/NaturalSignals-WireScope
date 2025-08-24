@@ -4,6 +4,8 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import dotenv from "dotenv";
 import winston from "winston";
+import projectsRouter from "./routes/projects";
+import simulatorRouter from "./routes/simulator";
 
 // Import routes
 import projectsRouter from "./routes/projects";
