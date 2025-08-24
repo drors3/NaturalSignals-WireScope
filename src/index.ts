@@ -13,7 +13,6 @@ import diagnoseRouter from "./routes/diagnose";
 
 // Import middleware
 import { errorHandler } from "./middleware/errorHandler";
-import { InternalSensorSimulator } from "./services/internal-simulator";
 
 // Load environment variables
 dotenv.config();
