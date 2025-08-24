@@ -4,7 +4,6 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import dotenv from "dotenv";
 import winston from "winston";
-import projectsRouter from "./routes/projects";
 import simulatorRouter from "./routes/simulator";
 
 // Import routes
@@ -78,6 +77,7 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
 });
 
 // Health check
+// Health check
 app.get("/", (_req: Request, res: Response) => {
   res.json({
     status: 'operational',
@@ -95,31 +95,10 @@ app.get("/health", (_req: Request, res: Response) => {
   });
 });
 
-// API Routes
 app.use("/api/projects", projectsRouter);
 app.use("/api/measurements", measurementsRouter);
 app.use("/api/diagnose", diagnoseRouter);
-
-// Simulator control endpoints
-app.post("/api/simulator/start/:projectId", (req: Request, res: Response) => {
-  const { projectId } = req.params;
-  const config = req.body; // Optional configuration
-  
-  InternalSensorSimulator.start(projectId, config);
-  res.json({ success: true, message: "Simulator started" });
-});
-
-app.post("/api/simulator/stop", (_req: Request, res: Response) => {
-  InternalSensorSimulator.stop();
-  res.json({ success: true, message: "Simulator stopped" });
-});
-
-app.get("/api/simulator/status", (_req: Request, res: Response) => {
-  res.json({ 
-    success: true, 
-    running: InternalSensorSimulator.isRunning() 
-  });
-});
+app.use("/api/simulator", simulatorRouter); 
 
 // API Documentation endpoint
 app.get("/api/docs", (_req: Request, res: Response) => {
